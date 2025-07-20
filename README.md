@@ -78,8 +78,6 @@ PORT=3000
 cd backend
 npm start
 
-# または開発モード
-npm run dev
 ```
 
 ### 5. Webアプリケーションにアクセス
@@ -159,23 +157,6 @@ recognition.interimResults = false;
 this.modelId = 'your_model_id_here';
 ```
 
-## 🔧 開発者向け
-
-### 開発環境の設定
-
-```bash
-# 開発用依存関係のインストール
-npm install --dev
-
-# 開発サーバーの起動（ホットリロード有効）
-npm run dev
-
-# テストの実行
-npm test
-
-# コードの整形
-npm run format
-```
 
 ### APIエンドポイント
 
@@ -224,29 +205,3 @@ npm start
 F12 → Console タブ
 ```
 
-## 📝 ライセンス
-
-このプロジェクトはMITライセンスの下で公開されています。詳細については[LICENSE](LICENSE)ファイルをご覧ください。
-
-## 🤝 コントリビューション
-
-1. このリポジトリをフォーク
-2. 機能ブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
-4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
-
-## 📞 サポート
-
-- **Issues**: [GitHub Issues](https://github.com/yourusername/bella-ai-assistant/issues)
-- **ディスカッション**: [GitHub Discussions](https://github.com/yourusername/bella-ai-assistant/discussions)
-
-## 🙏 謝辞
-
-- [Google Gemini AI](https://ai.google.dev/) - 自然言語処理
-- [Fish Audio](https://fish.audio/) - 高品質音声合成
-- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) - 音声認識
-
----
-
-💕 **Bella**: 「おおきに！いっぱい楽しい会話しよな〜♪」
