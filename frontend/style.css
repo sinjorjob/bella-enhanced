@@ -1,0 +1,513 @@
+/* --- 加载屏幕 --- */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 0.5s ease-out;
+}
+
+#loading-screen img {
+    width: 150px; /* 或者您希望的任何尺寸 */
+    height: auto;
+    animation: pulse-loader 2s infinite;
+}
+
+@keyframes pulse-loader {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+}
+
+
+/* --- 基本重置和全局样式 --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: white;
+    overflow: hidden; /* 防止视频导致滚动条 */
+    position: relative;
+    transform-style: preserve-3d;
+    perspective: 1500px;
+}
+
+/* --- 背景動画（部屋） --- */
+.room-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2; /* キャラクター動画より後ろ */
+    background-color: #000000;
+}
+
+.room-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 115%; /* 透け効果でより多くの背景が見えるように */
+    height: 115%;
+    object-fit: cover; /* 画面全体を覆う */
+    opacity: 1;
+    /* 背景がより鮮明に透けて見えるように調整 */
+    filter: saturate(1.1) 
+            contrast(1.1) 
+            brightness(1.05)
+            blur(0.3px); /* 軽いブラーで奥行き感を演出 */
+}
+
+/* --- キャラクター動画 --- */
+.video-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* 背景動画より前、コンテンツより後ろ */
+    background-color: transparent;
+}
+
+.bg-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    /* 部屋との融合効果 - くっきり感を向上 */
+    mix-blend-mode: normal; /* ブレンドを無効にしてくっきり表示 */
+    filter: contrast(1.3) 
+            brightness(1.1) 
+            saturate(1.2)
+            drop-shadow(0 0 20px rgba(0,0,0,0.4))
+            drop-shadow(0 0 10px rgba(0,0,0,0.2))
+            drop-shadow(0 0 5px rgba(0,0,0,0.1));
+    
+    /* 背景透過マスクで中央をくっきり表示 */
+    mask: 
+        /* キャラクター中央部分を大きくくっきり表示 */
+        radial-gradient(ellipse 60% 75% at center, 
+            rgba(0,0,0,1) 0%, 
+            rgba(0,0,0,1) 35%, 
+            rgba(0,0,0,0.85) 50%, 
+            rgba(0,0,0,0.5) 70%, 
+            rgba(0,0,0,0.15) 90%, 
+            rgba(0,0,0,0) 100%),
+        /* 背景部分の透明化を大幅に緩和 */
+        linear-gradient(0deg, 
+            rgba(0,0,0,0.6) 0%, 
+            rgba(0,0,0,0.8) 20%, 
+            rgba(0,0,0,1) 50%, 
+            rgba(0,0,0,0.8) 80%, 
+            rgba(0,0,0,0.6) 100%);
+    
+    -webkit-mask: 
+        radial-gradient(ellipse 60% 75% at center, 
+            rgba(0,0,0,1) 0%, 
+            rgba(0,0,0,1) 35%, 
+            rgba(0,0,0,0.85) 50%, 
+            rgba(0,0,0,0.5) 70%, 
+            rgba(0,0,0,0.15) 90%, 
+            rgba(0,0,0,0) 100%),
+        linear-gradient(0deg, 
+            rgba(0,0,0,0.6) 0%, 
+            rgba(0,0,0,0.8) 20%, 
+            rgba(0,0,0,1) 50%, 
+            rgba(0,0,0,0.8) 80%, 
+            rgba(0,0,0,0.6) 100%);
+    
+    mask-composite: intersect;
+    -webkit-mask-composite: intersect;
+}
+
+.bg-video.active {
+    opacity: 0.98; /* ほぼ完全不透明でくっきり表示 */
+}
+
+/* --- 内容覆盖层 --- */
+.content-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* 顶部和底部分别对齐 */
+    align-items: center;
+    padding: 25px;
+    /* ベラちゃんと背景の融合を邪魔しないよう最小限のオーバーレイ */
+    background: radial-gradient(ellipse 40% 50% at center,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.02) 30%,
+        rgba(0, 0, 0, 0.05) 60%,
+        rgba(0, 0, 0, 0.15) 100%);
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+/* --- 顶部好感度条とリセットボタン --- */
+.top-bar {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.top-left {
+    flex: 1;
+    text-align: left;
+}
+
+.top-left label {
+    font-size: 1rem;
+    font-weight: 600;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.reset-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.reset-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.reset-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+    transform: scale(1.1);
+}
+
+.reset-btn:active {
+    transform: scale(0.95);
+}
+
+.reset-btn i {
+    font-size: 16px;
+}
+
+.progress-container {
+    width: 100%;
+    height: 12px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 65%; /* 初始好感度值 */
+    background: linear-gradient(90deg, #ff9a9e, #fecfef); /* 粉色渐变 */
+    border-radius: 10px;
+    transition: width 0.5s ease-in-out;
+}
+
+/* --- 中间内容 (上传按钮) --- */
+.center-content {
+    /* 这个区域现在是空的，可以移除或保留以备将来使用 */
+}
+
+/* --- 语音识别结果显示 --- */
+.transcript-container {
+    position: absolute;
+    bottom: 180px; /* 放置在麦克风按钮上方 */
+    left: 50%;
+    transform: translateX(-50%) translateZ(0) scale(0.8);
+    width: 90%;
+    max-width: 800px;
+    padding: 0;
+    background: transparent;
+    text-align: center;
+    opacity: 0;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none; /* 默认不响应鼠标事件 */
+    perspective: 1000px;
+}
+
+.transcript-container.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-20px) translateZ(100px) scale(1);
+}
+
+#transcript {
+    display: inline-block;
+    padding: 18px 40px;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.03) 0%, 
+        rgba(255, 255, 255, 0.01) 50%, 
+        rgba(255, 255, 255, 0.02) 100%);
+    backdrop-filter: blur(10px) brightness(1.1);
+    -webkit-backdrop-filter: blur(10px) brightness(1.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 50px;
+    box-shadow: 
+        0 4px 24px rgba(0, 0, 0, 0.15),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    text-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.3px;
+    line-height: 1.5;
+    transform-style: preserve-3d;
+    transform: translateZ(0);
+    animation: subtleFloat 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, 
+               gentleBreathing 6s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+#transcript::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255, 255, 255, 0.02) 50%, 
+        transparent 70%);
+    transform: rotate(45deg) translateY(-100%);
+    animation: shimmer 8s ease-in-out infinite;
+}
+
+/* ユーザー発話時のスタイル */
+#transcript[data-type="user"] {
+    background: linear-gradient(135deg, 
+        rgba(120, 180, 255, 0.04) 0%, 
+        rgba(100, 160, 255, 0.02) 100%);
+    border-color: rgba(120, 180, 255, 0.12);
+    box-shadow: 
+        0 4px 24px rgba(120, 180, 255, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Bella応答時のスタイル */
+#transcript[data-type="bella"] {
+    background: linear-gradient(135deg, 
+        rgba(255, 200, 220, 0.04) 0%, 
+        rgba(255, 180, 200, 0.02) 100%);
+    border-color: rgba(255, 200, 220, 0.12);
+    box-shadow: 
+        0 4px 24px rgba(255, 200, 220, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* 考え中のスタイル */
+#transcript[data-type="thinking"] {
+    background: linear-gradient(135deg, 
+        rgba(255, 230, 100, 0.04) 0%, 
+        rgba(255, 210, 80, 0.02) 100%);
+    border-color: rgba(255, 230, 100, 0.12);
+    animation: subtleFloat 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, 
+               thinking 2s ease-in-out infinite;
+    box-shadow: 
+        0 4px 24px rgba(255, 230, 100, 0.08),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* 聞いていますのスタイル */
+#transcript[data-type="listening"] {
+    background: linear-gradient(135deg, 
+        rgba(180, 255, 180, 0.03) 0%, 
+        rgba(150, 230, 150, 0.01) 100%);
+    border-color: rgba(180, 255, 180, 0.1);
+    font-size: 1.4rem;
+    padding: 15px 35px;
+    box-shadow: 
+        0 3px 20px rgba(180, 255, 180, 0.06),
+        0 1px 3px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* アニメーション */
+@keyframes subtleFloat {
+    0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes gentleBreathing {
+    0%, 100% {
+        transform: translateY(0px) scale(1);
+    }
+    50% {
+        transform: translateY(-2px) scale(1.01);
+    }
+}
+
+@keyframes thinking {
+    0%, 100% {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes shimmer {
+    0%, 100% {
+        transform: rotate(45deg) translateY(-100%);
+    }
+    50% {
+        transform: rotate(45deg) translateY(100%);
+    }
+}
+
+/* --- 底部内容 --- */
+.bottom-bar {
+    width: 100%;
+    display: flex;
+    flex-direction: column; /* 垂直排列 */
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    position: relative; /* 为链接定位 */
+}
+
+.mic-button {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mic-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mic-button:active {
+    transform: scale(1.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.mic-button i {
+    font-size: 36px;
+    color: white;
+}
+
+/* 麦克风 "监听中" 的动画效果 */
+.mic-button.is-listening {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 154, 158, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(255, 154, 158, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 154, 158, 0);
+    }
+}
+
+
+/* --- 响应式设计 --- */
+@media (max-width: 600px) {
+    .content-overlay {
+        padding: 20px;
+    }
+
+    .top-bar {
+        max-width: 100%;
+        gap: 15px;
+    }
+
+    .top-left label {
+        font-size: 0.9rem;
+    }
+
+    .progress-container {
+        height: 10px;
+    }
+
+    .reset-btn {
+        width: 35px;
+        height: 35px;
+    }
+
+    .reset-btn i {
+        font-size: 14px;
+    }
+
+    .mic-button {
+        width: 70px;
+        height: 70px;
+    }
+
+    .mic-button i {
+        font-size: 30px;
+    }
+
+}

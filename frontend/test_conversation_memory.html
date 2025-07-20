@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bella 会話履歴機能テスト</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+        .debug-section {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Bella 会話履歴機能テスト</h1>
+        
+        <div class="test-section">
+            <h2>📝 パターン抽出テスト</h2>
+            <input type="text" class="test-input" id="extractionInput" 
+                   placeholder="例: 私の名前はしんやです。覚えておいてね！">
+            <button class="test-button" onclick="testExtraction()">情報抽出をテスト</button>
+            <div id="extractionResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>💭 会話シミュレーション</h2>
+            <input type="text" class="test-input" id="messageInput" 
+                   placeholder="メッセージを入力してください">
+            <button class="test-button" onclick="simulateConversation()">会話をシミュレート</button>
+            <div id="conversationResult" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🧪 事前定義テストケース</h2>
+            <button class="test-button" onclick="runTestCase('name')">名前登録テスト</button>
+            <button class="test-button" onclick="runTestCase('memory')">記憶リクエストテスト</button>
+            <button class="test-button" onclick="runTestCase('birthday')">誕生日テスト</button>
+            <button class="test-button" onclick="runTestCase('preference')">好みテスト</button>
+            <div id="testCaseResult" class="result"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>🔍 デバッグ情報</h2>
+            <button class="test-button" onclick="showProfile()">プロファイル表示</button>
+            <button class="test-button" onclick="showHistory()">履歴表示</button>
+            <button class="test-button" onclick="resetData()">データリセット</button>
+            <div id="debugResult" class="result"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h2>📁 ファイル保存機能</h2>
+            <button class="test-button" onclick="testFileExport()">JSONファイルエクスポート</button>
+            <button class="test-button" onclick="testFileImport()">JSONファイルインポート</button>
+            <button class="test-button" onclick="createBackup()">手動バックアップ</button>
+            <button class="test-button" onclick="showFileSystemStatus()">ファイルシステム状態</button>
+            <div id="fileResult" class="result"></div>
+        </div>
+    </div>
+
+    <script src="js/userProfileExtractor.js"></script>
+    <script src="js/fileManager.js"></script>
+    <script src="js/conversationManager.js"></script>
+    <script>
+        const extractor = new UserProfileExtractor();
+        const conversationManager = new ConversationManager();
+        
+        function testExtraction() {
+            const input = document.getElementById('extractionInput').value;
+            const result = extractor.extractMultipleInfo(input);
+            document.getElementById('extractionResult').textContent = JSON.stringify(result, null, 2);
+        }
+        
+        async function simulateConversation() {
+            const input = document.getElementById('messageInput').value;
+            try {
+                const result = await conversationManager.processUserMessage(input);
+                document.getElementById('conversationResult').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('conversationResult').textContent = 'エラー: ' + error.message;
+            }
+        }
+        
+        function runTestCase(type) {
+            const testCases = {
+                name: [
+                    '私の名前はしんやです。覚えておいてね！',
+                    'たかしと呼んでください',
+                    '僕はゆうきです'
+                ],
+                memory: [
+                    'これは重要なことだから覚えておいて',
+                    '明日は会議があるから忘れないでね',
+                    'パスワードは123456、記録してね'
+                ],
+                birthday: [
+                    '誕生日は3月15日です',
+                    '12月25日に生まれました',
+                    '私の誕生日は8月10日'
+                ],
+                preference: [
+                    'ラーメンが大好きです',
+                    '野菜は嫌いなんです',
+                    'アニメにハマってます'
+                ]
+            };
+            
+            const cases = testCases[type] || [];
+            let results = [];
+            
+            cases.forEach(testCase => {
+                const result = extractor.extractMultipleInfo(testCase);
+                results.push({
+                    input: testCase,
+                    output: result
+                });
+            });
+            
+            document.getElementById('testCaseResult').textContent = JSON.stringify(results, null, 2);
+        }
+        
+        function showProfile() {
+            const profile = conversationManager.loadUserProfile();
+            document.getElementById('debugResult').textContent = JSON.stringify(profile, null, 2);
+        }
+        
+        function showHistory() {
+            const history = conversationManager.loadConversationHistory();
+            document.getElementById('debugResult').textContent = JSON.stringify(history, null, 2);
+        }
+        
+        function resetData() {
+            if (confirm('全てのデータをリセットしますか？')) {
+                conversationManager.resetAllData();
+                document.getElementById('debugResult').textContent = 'データをリセットしました';
+            }
+        }
+        
+        // ファイル保存機能のテスト
+        function testFileExport() {
+            const profile = conversationManager.loadUserProfile();
+            const history = conversationManager.loadConversationHistory();
+            
+            // プロファイルをエクスポート
+            const profileBlob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
+            const profileUrl = URL.createObjectURL(profileBlob);
+            const profileLink = document.createElement('a');
+            profileLink.href = profileUrl;
+            profileLink.download = 'bella_user_profile_test.json';
+            profileLink.click();
+            URL.revokeObjectURL(profileUrl);
+            
+            // 履歴をエクスポート
+            const historyBlob = new Blob([JSON.stringify(history, null, 2)], { type: 'application/json' });
+            const historyUrl = URL.createObjectURL(historyBlob);
+            const historyLink = document.createElement('a');
+            historyLink.href = historyUrl;
+            historyLink.download = 'bella_conversation_history_test.json';
+            historyLink.click();
+            URL.revokeObjectURL(historyUrl);
+            
+            document.getElementById('fileResult').textContent = '📥 JSONファイルをエクスポートしました';
+        }
+        
+        async function testFileImport() {
+            try {
+                const success = await conversationManager.importFromFile();
+                document.getElementById('fileResult').textContent = success ? 
+                    '✅ インポートが完了しました' : 
+                    '❌ インポートに失敗しました';
+            } catch (error) {
+                document.getElementById('fileResult').textContent = '❌ エラー: ' + error.message;
+            }
+        }
+        
+        async function createBackup() {
+            try {
+                const success = await conversationManager.createManualBackup();
+                document.getElementById('fileResult').textContent = success ? 
+                    '✅ バックアップを作成しました' : 
+                    '❌ バックアップの作成に失敗しました';
+            } catch (error) {
+                document.getElementById('fileResult').textContent = '❌ エラー: ' + error.message;
+            }
+        }
+        
+        function showFileSystemStatus() {
+            const status = conversationManager.getFileSystemStatus();
+            document.getElementById('fileResult').textContent = JSON.stringify(status, null, 2);
+        }
+        
+        // 初期状態の表示
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🤖 Bella 会話履歴機能テストページが読み込まれました');
+            console.log('使用可能なデバッグ関数:');
+            console.log('- testExtraction(): パターン抽出テスト');
+            console.log('- simulateConversation(): 会話シミュレーション');
+            console.log('- showProfile(): プロファイル表示');
+            console.log('- showHistory(): 履歴表示');
+            console.log('- resetData(): データリセット');
+        });
+    </script>
+</body>
+</html>
